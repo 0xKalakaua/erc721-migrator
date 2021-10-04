@@ -27,7 +27,8 @@ def new_erc721():
 def contracts(old_erc721, new_erc721):
     dev = accounts[0]
     minter = accounts[1]
-    return Migrator.deploy(minter, old_erc721, new_erc721, {'from': dev}), old_erc721, new_erc721
+    migrator = Migrator.deploy(minter, old_erc721, new_erc721, {'from': dev})
+    return migrator, old_erc721, new_erc721
 
 def test_initial_state(contracts):
     minter = accounts[1]
