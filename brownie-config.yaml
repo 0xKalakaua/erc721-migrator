@@ -21,4 +21,3 @@ networks:
 wallets:
   from_key: ${PRIVATE_KEY}
   from_mnemonic: ${MNEMONIC}
-  # You'd have to change the accounts.add to accounts.from_mnemonic to use from_mnemonic
