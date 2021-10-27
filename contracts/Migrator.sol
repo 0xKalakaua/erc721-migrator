@@ -28,7 +28,7 @@ contract Migrator is Context, IERC721Receiver {
     }
 
     function migrate(uint256 tokenId) external {
-        require(oldToNewId[tokenId] > 0); // make sure mapping exists
+        require(oldToNewId[tokenId] > 0, "Migrator: This token is not on the list"); // make sure mapping exists
         tombheads.safeTransferFrom(_minter, _msgSender(), oldToNewId[tokenId]);
         petZoo.safeTransferFrom(_msgSender(), address(this), tokenId);
     }
