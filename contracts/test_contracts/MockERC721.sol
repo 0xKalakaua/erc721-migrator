@@ -6,30 +6,34 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
-import "@openzeppelin/contracts/utils/Context.sol";
 
-contract MockERC721 is Context, AccessControlEnumerable, ERC721Enumerable, ERC721URIStorage {
+contract MockERC721 is AccessControlEnumerable, ERC721Enumerable, ERC721URIStorage {
     using Counters for Counters.Counter;
     Counters.Counter public _tokenIdTracker;
 
-    uint private _max;
+    uint public max_supply;
 
-    constructor (string memory name, string memory symbol, uint max, address admin) public ERC721 (name, symbol){
+    constructor (string memory name, string memory symbol, uint max, address admin)
+        ERC721(name, symbol)
+    {
         _tokenIdTracker.increment(); // Start collection at 1
-        _max = max+1; // +1 to account for starting the collection at 1
+        max_supply = max;
         _setupRole(DEFAULT_ADMIN_ROLE, admin);
-        _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    function setTokenURI(uint256 tokenId, string memory _tokenURI) external {
-    require(hasRole(DEFAULT_ADMIN_ROLE, _msgSender()), "Tombheads: must have admin role to change token URI");
-    _setTokenURI(tokenId, _tokenURI);
+    modifier onlyAdmin() {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "MockERC721: caller is not admin");
+        _;
     }
 
-    function mint(string memory _tokenURI) public returns (uint256) {
-        require(hasRole(DEFAULT_ADMIN_ROLE, _msgSender()), "Tombheads: must have admin role to mint");
-        require(_tokenIdTracker.current() + 1 <= _max, "Tombheads: all tokens have been minted");
-        _safeMint(_msgSender(), _tokenIdTracker.current());
+    function setTokenURI(uint256 tokenId, string memory _tokenURI) external onlyAdmin {
+        _setTokenURI(tokenId, _tokenURI);
+    }
+
+    function mint(string memory _tokenURI) public onlyAdmin {
+        require(_tokenIdTracker.current() <= max_supply, "MockERC721: all tokens have been minted");
+        _safeMint(msg.sender, _tokenIdTracker.current());
         _setTokenURI(_tokenIdTracker.current(), _tokenURI);
         _tokenIdTracker.increment();
     }
