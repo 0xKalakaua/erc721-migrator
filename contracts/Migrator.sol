@@ -3,9 +3,8 @@ pragma solidity 0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/utils/Context.sol";
 
-contract Migrator is Context, IERC721Receiver {
+contract Migrator is IERC721Receiver {
     mapping (uint256 => uint256) public oldToNewId;
     IERC721 petZoo;
     IERC721 tombheads;
@@ -110,8 +109,8 @@ contract Migrator is Context, IERC721Receiver {
 
     function migrate(uint256 tokenId) external {
         require(oldToNewId[tokenId] > 0, "Migrator: This token is not on the list"); // make sure mapping exists
-        tombheads.safeTransferFrom(_minter, _msgSender(), oldToNewId[tokenId]);
-        petZoo.safeTransferFrom(_msgSender(), address(this), tokenId);
+        tombheads.safeTransferFrom(_minter, msg.sender, oldToNewId[tokenId]);
+        petZoo.safeTransferFrom(msg.sender, address(this), tokenId);
     }
 
     function onERC721Received(address, address, uint256, bytes memory) public virtual override returns (bytes4) {
