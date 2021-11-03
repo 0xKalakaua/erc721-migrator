@@ -13,7 +13,6 @@ def old_erc721():
             old.safeTransferFrom(dev, accounts[i], i, {'from': dev})
     return old
 
-
 @pytest.fixture
 def new_erc721():
     minter = accounts[1]
@@ -103,3 +102,23 @@ def test_new_not_approved(contracts):
         migrator.migrate(2, {'from': accounts[2]})
     assert old.ownerOf(2) == accounts[2].address
     assert new.ownerOf(1) == minter.address 
+
+def test_token_not_minted_yet(old_erc721):
+    old = old_erc721
+    minter = accounts[1]
+    max_ = 5
+    new = MockERC721.deploy("New Contract", "NEW", max_, minter, {'from': minter})
+    for i in range(max_ - 1):
+        new.mint(f"New #{i+1}", {'from': minter})
+
+    dev = accounts[0]
+    migrator = Migrator.deploy(minter, old, new, {'from': dev})
+    new.setApprovalForAll(migrator, True, {'from': minter})
+    old.approve(migrator, 10, {'from': dev})
+    with brownie.reverts():
+        migrator.migrate(10, {'from': dev})
+
+    new.mint(f"New #10", {'from': minter})
+    migrator.migrate(10, {'from': dev})
+    assert old.ownerOf(10) == migrator.address
+    assert new.ownerOf(5) == dev.address
